@@ -61,10 +61,10 @@ const createTask = async (req, res) => {
 };
 
 // PATCH /api/tasks/:id
+// PATCH /api/tasks/:id
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { completed } = req.body;
 
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({
@@ -72,15 +72,44 @@ const updateTask = async (req, res) => {
       });
     }
 
-    if (typeof completed !== "boolean") {
+    const { title, completed } = req.body;
+    const updates = {};
+
+    // Validate title if provided
+    if (title !== undefined) {
+      if (typeof title !== "string" || !title.trim()) {
+        return res.status(400).json({
+          message: "Task title cannot be empty.",
+        });
+      }
+
+      updates.title = title.trim();
+    }
+
+    // Validate completed if provided
+    if (completed !== undefined) {
+      if (typeof completed !== "boolean") {
+        return res.status(400).json({
+          message: "Completed must be a boolean.",
+        });
+      }
+
+      updates.completed = completed;
+    }
+
+    // Ensure at least one valid field was provided
+    if (Object.keys(updates).length === 0) {
       return res.status(400).json({
-        message: "Completed must be a boolean.",
+        message: "Provide a title or completed status to update.",
       });
     }
 
     const task = await Task.findOneAndUpdate(
-      { _id: id, owner: req.session.userId },
-      { completed },
+      {
+        _id: id,
+        owner: req.session.userId,
+      },
+      { $set: updates },
       { new: true, runValidators: true },
     );
 

@@ -1,3 +1,4 @@
+import confetti from "canvas-confetti";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import "./App.css";
@@ -25,6 +26,7 @@ function App() {
   const {
     data,
     isLoading: tasksLoading,
+    isFetching: tasksFetching,
     error: tasksError,
   } = useQuery({
     queryKey: ["tasks", page, PAGE_SIZE],
@@ -62,10 +64,24 @@ function App() {
 
   // Update task
   const updateMutation = useMutation({
-    mutationFn: ({ id, completed }) =>
-      taskService.updateTask(id, { completed }),
-    onSuccess: () => {
+    mutationFn: ({ id, updates }) => taskService.updateTask(id, updates),
+    onSuccess: (updatedTask, variables) => {
       setError("");
+
+      // Celebrate only when a task is marked as completed
+      if (variables.updates.completed === true) {
+        confetti({
+          particleCount: 150,
+          spread: 100,
+          origin: { y: 0.6 },
+          startVelocity: 45,
+          gravity: 0.9,
+          scalar: 1.1,
+          ticks: 200,
+          zIndex: 10000,
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
     onError: (err) => {
@@ -85,6 +101,12 @@ function App() {
     },
   });
 
+  const isAppLoading =
+    tasksFetching ||
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
+
   async function handleAddTask(title) {
     setError("");
     try {
@@ -95,11 +117,30 @@ function App() {
     }
   }
 
+  async function handleUpdateTitle(taskId, newTitle) {
+    setError("");
+
+    try {
+      await updateMutation.mutateAsync({
+        id: taskId,
+        updates: {
+          title: newTitle,
+        },
+      });
+
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   function handleToggleTask(task) {
     setError("");
     updateMutation.mutate({
       id: task._id,
-      completed: !task.completed,
+      updates: {
+        completed: !task.completed,
+      },
     });
   }
 
@@ -120,13 +161,26 @@ function App() {
 
   // Check authentication
   if (isLoading) {
-    return <p>Checking your session...</p>;
+    return (
+      <div className="initial-loading-screen" role="status">
+        <div className="loading-spinner"></div>
+        <p>Getting everything ready...</p>
+      </div>
+    );
   }
 
   // Show authentication screens
   if (!user) {
     return (
       <main className="app">
+        {isAppLoading && (
+          <div className="loading-overlay" role="status" aria-live="polite">
+            <div className="loading-content">
+              <div className="loading-spinner"></div>
+              <p>Making things happen...</p>
+            </div>
+          </div>
+        )}
         <header className="app-header">
           <p className="eyebrow">STAY ORGANIZED</p>
           <h1>Task Tracker</h1>
@@ -203,6 +257,7 @@ function App() {
           }
           onToggleTask={handleToggleTask}
           onDeleteTask={handleDeleteTask}
+          onUpdateTitle={handleUpdateTitle}
         />
 
         <Pagination
