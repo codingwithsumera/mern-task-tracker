@@ -215,7 +215,7 @@ button:disabled {
 
 .app-footer {
   margin-top: 24px;
-  color: #858397;
+  color: #1e05ff;
   font-size: 0.85rem;
   text-align: center;
 }
@@ -249,5 +249,136 @@ button:disabled {
 
   .secondary-button {
     padding: 9px 10px;
+  }
+}
+/* Completed task styling */
+.task-item.completed {
+  background-color: #eaf8ee;
+  border: 1px solid #a7dfb5;
+  border-left: 5px solid #28a745;
+  border-radius: 10px;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.task-item.completed .task-title {
+  color: #247a3b;
+  text-decoration: line-through;
+  text-decoration-color: #28a745;
+}
+
+.task-item.completed .status-label {
+  background-color: #28a745;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+/* Mark as complete */
+.complete-button {
+  background: #28a745;
+  color: white;
+  border: 1px solid #28a745;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.complete-button:hover:not(:disabled) {
+  background: #218838;
+  border-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(40, 167, 69, 0.25);
+}
+
+/* Mark as pending */
+.pending-button {
+  background: #f1f3f5;
+  color: #495057;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pending-button:hover:not(:disabled) {
+  background: #e2e6ea;
+}
+
+.complete-button:disabled,
+.pending-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* Full-screen loading overlay */
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(230, 242, 234, 0.78);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 36px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.loading-content p,
+.initial-loading-screen p {
+  color: #247a3b;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Green animated spinner */
+.loading-spinner {
+  width: 42px;
+  height: 42px;
+  border: 4px solid #d8efde;
+  border-top-color: #28a745;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Initial session loading */
+.initial-loading-screen {
+  min-height: 100vh;
+  background: #eaf8ee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
