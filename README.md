@@ -1,68 +1,82 @@
 # MERN Task Tracker
 
-A simple task management application built with React, Node.js, Express,
-MongoDB, and Mongoose. Users can create tasks, view a paginated task
-list, mark tasks as completed or pending, and delete tasks. Task data is
-stored in MongoDB, so it persists after refreshing the page.
+A full-stack task management application built with React, Node.js, Express, and MongoDB. The application supports user registration, session-based authentication, and personal task management.
+
+Each user can create, view, update, and delete their own tasks. Authentication is managed using secure server-side sessions stored in MongoDB.
 
 ## Features
 
+### Task Management
+
 - Create tasks with title validation.
 - View tasks in a paginated list.
-- Mark a task as completed or pending.
-- Delete a task.
-- Loading, empty, and error states in the React UI.
-- REST API built with Express and Mongoose.
-- MongoDB persistence.
+- Mark tasks as completed or pending.
+- Delete tasks.
+- Loading, empty, and error states.
 
-## Tech stack
+### Authentication
 
-- **Frontend:** React, Vite, JavaScript, Fetch API
+- User registration and login.
+- Password hashing using bcrypt.
+- Session-based authentication using express-session.
+- Session persistence across page refreshes.
+- Logout functionality.
+- Protected task routes.
+- User-specific task ownership and access control.
+
+## Tech Stack
+
+- **Frontend:** React, Vite, JavaScript, Axios
+- **State Management and Data Fetching:** TanStack Query
 - **Backend:** Node.js, Express
 - **Database:** MongoDB with Mongoose
+- **Authentication:** express-session, bcrypt, connect-mongo
 
-## Project structure
+## Project Structure
 
-mern-task-tracker/
-
-## Project structure
-
+```text
 mern-task-tracker/
 ├── backend/
-│ ├── models/
-│ │ └── Task.js
-│ ├── routes/
-│ │ └── tasks.js
-│ ├── .env
-│ ├── .gitignore
-│ ├── package.json
-│ └── server.js
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── .env
+│   ├── package.json
+│   └── server.js
+│
 ├── frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ │ ├── Pagination.jsx
-│ │ │ ├── TaskForm.jsx
-│ │ │ └── TaskList.jsx
-│ │ ├── services/
-│ │ │ └── taskService.js
-│ │ ├── App.jsx
-│ │ ├── App.css
-│ │ ├── index.css
-│ │ └── main.jsx
-│ ├── index.html
-│ └── package.json
-└````
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Login.jsx
+│   │   │   ├── Register.jsx
+│   │   │   ├── Pagination.jsx
+│   │   │   ├── TaskForm.jsx
+│   │   │   └── TaskList.jsx
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   ├── authService.js
+│   │   │   └── taskService.js
+│   │   ├── App.jsx
+│   │   ├── App.css
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── package.json
+│   └── index.html
+│
+└── README.md
+```
 
 ## Prerequisites
 
-Install the following before running the project:
-
 - Node.js and npm
-- A MongoDB database, either a local MongoDB server or a MongoDB Atlas
-  cluster
-- Git (optional, for cloning the repository)
+- MongoDB local installation or MongoDB Atlas account
+- Git
 
-## Setup
+## Setup Instructions
 
 ### 1. Clone the repository
 
@@ -71,40 +85,35 @@ git clone https://github.com/codingwithsumera/mern-task-tracker.git
 cd mern-task-tracker
 ```
 
-### 2. Configure the backend environment
+### 2. Configure backend environment variables
 
-In the `backend/` directory, create a `.env` file:
+Create a `.env` file inside the `backend/` directory:
 
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
+SESSION_SECRET=your_long_random_secret
 ```
 
-Replace `your_mongodb_connection_string` with your MongoDB connection
-string. Keep `.env` private and never commit database credentials.
+Replace the placeholder values with your actual MongoDB connection string and a strong, random session secret.
 
-### 3. Install backend dependencies and start the API
+Never commit your `.env` file or expose your credentials.
 
-Open a terminal in the project root:
+### 3. Install and run the backend
 
 ```bash
 cd backend
 npm install
-node server.js
+npm run dev
 ```
 
-The API should connect to MongoDB and start on `http://localhost:5000`.
-Keep this terminal running.
+The backend runs at:
 
-You can check the API health endpoint by opening:
+`http://localhost:5000`
 
-```text
-http://localhost:5000/
-```
+### 4. Install and run the frontend
 
-### 4. Install frontend dependencies and start React
-
-Open a **second terminal** in the project root:
+Open a second terminal from the project root:
 
 ```bash
 cd frontend
@@ -112,120 +121,100 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite in the terminal, usually
-`http://localhost:5173`.
+The frontend runs at:
 
-Keep both the backend and frontend terminals running while using the
-app.
+`http://localhost:5173`
 
-## API endpoints
+Keep both terminals running while using the application.
 
-The API base URL is `http://localhost:5000/api/tasks`.
+## API Endpoints
 
----
+All API endpoints use the base URL:
 
-Method Endpoint Purpose Expected success
-response
+`http://localhost:5000/api`
 
----
+### Authentication
 
-`GET` `/api/tasks?page=1&limit=5` Get a paginated `200 OK`
-task list
+| Method | Endpoint         | Purpose                                   |
+| ------ | ---------------- | ----------------------------------------- |
+| POST   | `/auth/register` | Register a new user                       |
+| POST   | `/auth/login`    | Authenticate a user                       |
+| POST   | `/auth/logout`   | End the current session                   |
+| GET    | `/auth/me`       | Retrieve the currently authenticated user |
 
-`POST` `/api/tasks` Create a task `201 Created`
+### Tasks
 
-`PATCH` `/api/tasks/:id` Change a task's `200 OK`
-completion status
-by ID
+All task endpoints require authentication.
 
-`DELETE` `/api/tasks/:id` Delete a task by `204 No Content`
-ID
-------------------------------------------------------------------------------------
+| Method | Endpoint     | Purpose                           |
+| ------ | ------------ | --------------------------------- |
+| GET    | `/tasks`     | Retrieve the current user's tasks |
+| POST   | `/tasks`     | Create a task                     |
+| PATCH  | `/tasks/:id` | Update task completion status     |
+| DELETE | `/tasks/:id` | Delete a task                     |
 
-### Example requests
+Task operations are restricted to the authenticated user's own tasks.
 
-Create a task:
+## Authentication and Session Flow
 
-```http
-POST /api/tasks
-Content-Type: application/json
+1. A user registers with their name, email, and password.
+2. The backend hashes the password using bcrypt before storing it.
+3. When the user logs in, the backend verifies the password.
+4. Express Session creates a session and stores the authenticated user's ID.
+5. Session data is stored in MongoDB using connect-mongo.
+6. The browser stores the session cookie and sends it with subsequent API requests.
+7. The frontend uses `/auth/me` to restore the authenticated user after a page refresh.
+8. Logging out destroys the session.
 
-{
-  "title": "Review React hooks"
-}
-```
+The application uses session-based authentication rather than JWT authentication.
 
-Mark a task as completed (replace `TASK_ID` with the task's MongoDB
-`_id`):
+## Frontend Architecture
 
-```http
-PATCH /api/tasks/TASK_ID
-Content-Type: application/json
+- **Axios:** A shared API instance handles HTTP requests and includes session credentials.
+- **Auth Context:** Shares the authenticated user and authentication actions across components.
+- **TanStack Query:** Handles server-state fetching, mutations, caching, and query invalidation.
+- **Service Layer:** Separates authentication API calls from task API calls.
 
-{
-  "completed": true
-}
-```
+## Security and Data Ownership
 
-Delete a task (replace `TASK_ID` with the task's MongoDB `_id`):
+- Passwords are stored as bcrypt hashes.
+- Task routes are protected by authentication middleware.
+- Every task is associated with an owner.
+- Users can only retrieve, update, and delete their own tasks.
+- Session data is stored in MongoDB.
+- Database credentials and session secrets must remain private.
 
-```http
-DELETE /api/tasks/TASK_ID
-```
+## Manual Testing Checklist
 
-The frontend obtains each task's `_id` from MongoDB and sends it when
-the user marks a task complete/pending or deletes it. A separate "fetch
-one task by ID" endpoint is not part of this assignment's API contract.
+### Authentication
 
-### Error handling
+- Register a new account.
+- Attempt registration with an existing email.
+- Log in with valid credentials.
+- Reject invalid login credentials.
+- Refresh the page and confirm the session persists.
+- Log out and confirm protected access is denied.
 
-The API should use these status codes according to the assignment:
+### Task Management
 
-- `400 Bad Request` --- invalid input, such as a blank title or
-  malformed task ID.
-- `404 Not Found` --- task or route does not exist.
-- `500 Internal Server Error` --- unexpected server or database error.
+- Create a task.
+- View the task list.
+- Mark a task as completed.
+- Mark a task as pending.
+- Delete a task.
+- Test pagination.
+- Verify loading, empty, and error states.
 
-JSON error responses should include a `message` field. A successful
-delete returns `204 No Content` with no response body.
+### User Access Control
 
-## Manual verification checklist
-
-- [ ] Create a task with a valid title.
-- [ ] Try submitting a blank or whitespace-only title and confirm it
-      is rejected.
-- [ ] Confirm tasks appear in the list.
-- [ ] Refresh the page and confirm saved tasks remain.
-- [ ] Mark a task as completed, then mark it pending again.
-- [ ] Delete a task and confirm it disappears.
-- [ ] Create enough tasks to check the Previous/Next pagination
-      controls and page totals.
-- [ ] Confirm the UI displays loading, empty, and error states where
-      applicable.
-- [ ] Test malformed IDs and IDs that do not match an existing task
-      through the API; confirm the appropriate JSON error and status code.
-- [ ] Confirm the API returns `204 No Content` for a successful
-      deletion.
-
-## How the request flow works
-
-For example, when a user marks a task as completed:
-
-1.  The React component calls `updateTask(task._id, true)` in
-    `frontend/src/services/taskService.js`.
-2.  The service sends a `PATCH` request to `/api/tasks/:id` with a JSON
-    body.
-3.  Express matches the route in `backend/routes/tasks.js` and validates
-    the ID and request body.
-4.  Mongoose updates the matching task document in MongoDB.
-5.  Express sends the updated task as JSON.
-6.  The frontend reloads the task list and React renders the updated
-    status.
+- Register two separate accounts.
+- Create tasks using the first account.
+- Log in using the second account.
+- Confirm the second account cannot view the first account's tasks.
+- Confirm users cannot update or delete another user's tasks.
 
 ## Notes
 
-- Do not commit `.env`, database credentials, or `node_modules/`.
-- Run backend commands from `backend/` and frontend commands from
-  `frontend/`.
-- If your `backend/package.json` defines a start script, you can use
-  that script instead of `node server.js`.
+- Run backend and frontend commands in separate terminals.
+- Keep environment variables inside the backend `.env` file.
+- Never commit `.env`, database credentials, or `node_modules/`.

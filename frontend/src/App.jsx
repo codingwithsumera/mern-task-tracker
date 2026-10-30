@@ -1,120 +1,180 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import "./App.css";
 
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
 import Pagination from "./components/Pagination";
+import Login from "./components/Login";
+import Register from "./components/Register";
 
-import {
-  getTasks,
-  createTask,
-  updateTask,
-  deleteTask,
-} from "./services/taskService";
+import { useAuth } from "./context/AuthContext";
+import taskService from "./services/taskService";
 
 const PAGE_SIZE = 5;
 
 function App() {
-  const [tasks, setTasks] = useState([]);
+  const { user, isLoading, logout } = useAuth();
+  const queryClient = useQueryClient();
+
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [busyTaskId, setBusyTaskId] = useState(null);
+  const [authMode, setAuthMode] = useState("login");
   const [error, setError] = useState("");
 
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  // Fetch tasks for the logged-in user
+  const {
+    data,
+    isLoading: tasksLoading,
+    error: tasksError,
+  } = useQuery({
+    queryKey: ["tasks", page, PAGE_SIZE],
+    queryFn: () =>
+      taskService.getTasks({
+        page,
+        limit: PAGE_SIZE,
+      }),
+    enabled: !!user,
+  });
 
-    try {
-      const data = await getTasks(page, PAGE_SIZE);
+  const tasks = data?.tasks || [];
+  const totalPages = Math.max(
+    1,
+    Number(
+      data?.totalPages ??
+        data?.pagination?.totalPages ??
+        data?.pagination?.pages ??
+        1,
+    ),
+  );
 
-      setTasks(data.tasks || []);
+  // Create task
+  const createMutation = useMutation({
+    mutationFn: taskService.createTask,
+    onSuccess: () => {
+      setError("");
+      setPage(1);
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (err) => {
+      setError(err.response?.data?.message || "Could not create task.");
+    },
+  });
 
-      const pages =
-        data.totalPages ??
-        data.pagination?.totalPages ??
-        data.pagination?.pages ??
-        1;
+  // Update task
+  const updateMutation = useMutation({
+    mutationFn: ({ id, completed }) =>
+      taskService.updateTask(id, { completed }),
+    onSuccess: () => {
+      setError("");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (err) => {
+      setError(err.response?.data?.message || "Could not update task.");
+    },
+  });
 
-      setTotalPages(Math.max(1, Number(pages) || 1));
-    } catch (err) {
-      setError(err.message || "Could not load tasks.");
-    } finally {
-      setLoading(false);
-    }
-  }, [page]);
-
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+  // Delete task
+  const deleteMutation = useMutation({
+    mutationFn: taskService.deleteTask,
+    onSuccess: () => {
+      setError("");
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+    onError: (err) => {
+      setError(err.response?.data?.message || "Could not delete task.");
+    },
+  });
 
   async function handleAddTask(title) {
-    setSubmitting(true);
     setError("");
-
     try {
-      await createTask(title);
-
-      if (page !== 1) {
-        setPage(1);
-      } else {
-        await loadTasks();
-      }
-
+      await createMutation.mutateAsync({ title });
       return true;
-    } catch (err) {
-      setError(err.message || "Could not create the task.");
+    } catch {
       return false;
-    } finally {
-      setSubmitting(false);
     }
   }
 
-  async function handleToggleTask(task) {
-    setBusyTaskId(task._id);
+  function handleToggleTask(task) {
     setError("");
-
-    try {
-      await updateTask(task._id, !task.completed);
-      await loadTasks();
-    } catch (err) {
-      setError(err.message || "Could not update the task.");
-    } finally {
-      setBusyTaskId(null);
-    }
+    updateMutation.mutate({
+      id: task._id,
+      completed: !task.completed,
+    });
   }
 
-  async function handleDeleteTask(taskId) {
-    setBusyTaskId(taskId);
+  function handleDeleteTask(taskId) {
     setError("");
+    deleteMutation.mutate(taskId);
+  }
 
+  async function handleLogout() {
     try {
-      await deleteTask(taskId);
-
-      if (tasks.length === 1 && page > 1) {
-        setPage((currentPage) => currentPage - 1);
-      } else {
-        await loadTasks();
-      }
+      await logout();
+      setPage(1);
+      setError("");
     } catch (err) {
-      setError(err.message || "Could not delete the task.");
-    } finally {
-      setBusyTaskId(null);
+      setError(err.response?.data?.message || "Could not log out.");
     }
   }
 
+  // Check authentication
+  if (isLoading) {
+    return <p>Checking your session...</p>;
+  }
+
+  // Show authentication screens
+  if (!user) {
+    return (
+      <main className="app">
+        <header className="app-header">
+          <p className="eyebrow">STAY ORGANIZED</p>
+          <h1>Task Tracker</h1>
+          <p className="subtitle">
+            One task at a time. Make progress every day.
+          </p>
+        </header>
+
+        <section className="task-panel">
+          {authMode === "login" ? (
+            <>
+              <Login />
+              <p>
+                Don't have an account?{" "}
+                <button onClick={() => setAuthMode("register")}>
+                  Register
+                </button>
+              </p>
+            </>
+          ) : (
+            <>
+              <Register />
+              <p>
+                Already have an account?{" "}
+                <button onClick={() => setAuthMode("login")}>Login</button>
+              </p>
+            </>
+          )}
+        </section>
+      </main>
+    );
+  }
+
+  // Show task application
   return (
     <main className="app">
       <header className="app-header">
         <p className="eyebrow">STAY ORGANIZED</p>
         <h1>Task Tracker</h1>
-        <p className="subtitle">One task at a time. Make progress every day.</p>
+        <p className="subtitle">Welcome, {user.name}</p>
+        <button onClick={handleLogout}>Logout</button>
       </header>
 
       <section className="task-panel">
-        <TaskForm onAddTask={handleAddTask} submitting={submitting} />
+        <TaskForm
+          onAddTask={handleAddTask}
+          submitting={createMutation.isPending}
+        />
 
         <div className="task-heading">
           <h2>Your tasks</h2>
@@ -123,16 +183,24 @@ function App() {
           </span>
         </div>
 
-        {error && (
+        {(error || tasksError) && (
           <div className="error-message" role="alert">
-            {error}
+            {error ||
+              tasksError?.response?.data?.message ||
+              "Could not load tasks."}
           </div>
         )}
 
         <TaskList
           tasks={tasks}
-          loading={loading}
-          busyTaskId={busyTaskId}
+          loading={tasksLoading}
+          busyTaskId={
+            updateMutation.isPending
+              ? updateMutation.variables?.id
+              : deleteMutation.isPending
+                ? deleteMutation.variables
+                : null
+          }
           onToggleTask={handleToggleTask}
           onDeleteTask={handleDeleteTask}
         />
@@ -140,7 +208,7 @@ function App() {
         <Pagination
           page={page}
           totalPages={totalPages}
-          loading={loading}
+          loading={tasksLoading}
           onPageChange={setPage}
         />
       </section>
