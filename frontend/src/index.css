@@ -7,7 +7,7 @@
     "Segoe UI",
     sans-serif;
   color: #0e0e15;
-  background: #e1d5a8;
+  background: #ffffa2;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -20,7 +20,7 @@
 
 body {
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 50vh;
   margin: 0;
 }
 

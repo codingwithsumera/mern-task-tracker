@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const Task = require("../models/Task");
+import mongoose from "mongoose";
+import Task from "../models/Task.js";
 
 // GET /api/tasks?page=1&limit=5
 const getTasks = async (req, res) => {
@@ -159,9 +159,4 @@ const deleteTask = async (req, res) => {
   }
 };
 
-module.exports = {
-  getTasks,
-  createTask,
-  updateTask,
-  deleteTask,
-};
+export { getTasks, createTask, updateTask, deleteTask };

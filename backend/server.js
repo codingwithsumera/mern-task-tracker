@@ -1,12 +1,14 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import session from "express-session";
+import MongoStore from "connect-mongo";
+import taskRoutes from "./routes/tasks.js";
+import authRoutes from "./routes/auth.js";
+import chatRoutes from "./routes/chat.js";
 
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const session = require("express-session");
-const MongoStore = require("connect-mongo").default;
-const taskRoutes = require("./routes/tasks");
-const authRoutes = require("./routes/auth");
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -59,6 +61,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/chat", chatRoutes);
 
 // JSON response for unknown routes
 app.use((req, res) => {
