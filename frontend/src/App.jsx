@@ -2,6 +2,7 @@ import confetti from "canvas-confetti";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import "./App.css";
+import Chat from "./components/Chat";
 
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
@@ -21,6 +22,7 @@ function App() {
   const [page, setPage] = useState(1);
   const [authMode, setAuthMode] = useState("login");
   const [error, setError] = useState("");
+  const [activeView, setActiveView] = useState("tasks");
 
   // Fetch tasks for the logged-in user
   const {
@@ -221,52 +223,69 @@ function App() {
         <p className="eyebrow">STAY ORGANIZED</p>
         <h1>Task Tracker</h1>
         <p className="subtitle">Welcome, {user.name}</p>
-        <button onClick={handleLogout}>Logout</button>
+        <nav className="app-navigation">
+          <button onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+
+          <button onClick={() => setActiveView("tasks")} className="nav-button">
+            Task Tracker
+          </button>
+
+          <button onClick={() => setActiveView("chat")} className="nav-button">
+            AI Chat
+          </button>
+        </nav>
       </header>
+      {activeView === "tasks" ? (
+        <section className="task-panel">
+          <TaskForm
+            onAddTask={handleAddTask}
+            submitting={createMutation.isPending}
+          />
 
-      <section className="task-panel">
-        <TaskForm
-          onAddTask={handleAddTask}
-          submitting={createMutation.isPending}
-        />
-
-        <div className="task-heading">
-          <h2>Your tasks</h2>
-          <span className="page-indicator">
-            Page {page} of {totalPages}
-          </span>
-        </div>
-
-        {(error || tasksError) && (
-          <div className="error-message" role="alert">
-            {error ||
-              tasksError?.response?.data?.message ||
-              "Could not load tasks."}
+          <div className="task-heading">
+            <h2>Your tasks</h2>
+            <span className="page-indicator">
+              Page {page} of {totalPages}
+            </span>
           </div>
-        )}
 
-        <TaskList
-          tasks={tasks}
-          loading={tasksLoading}
-          busyTaskId={
-            updateMutation.isPending
-              ? updateMutation.variables?.id
-              : deleteMutation.isPending
-                ? deleteMutation.variables
-                : null
-          }
-          onToggleTask={handleToggleTask}
-          onDeleteTask={handleDeleteTask}
-          onUpdateTitle={handleUpdateTitle}
-        />
+          {(error || tasksError) && (
+            <div className="error-message" role="alert">
+              {error ||
+                tasksError?.response?.data?.message ||
+                "Could not load tasks."}
+            </div>
+          )}
 
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          loading={tasksLoading}
-          onPageChange={setPage}
-        />
-      </section>
+          <TaskList
+            tasks={tasks}
+            loading={tasksLoading}
+            busyTaskId={
+              updateMutation.isPending
+                ? updateMutation.variables?.id
+                : deleteMutation.isPending
+                  ? deleteMutation.variables
+                  : null
+            }
+            onToggleTask={handleToggleTask}
+            onDeleteTask={handleDeleteTask}
+            onUpdateTitle={handleUpdateTitle}
+          />
+
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            loading={tasksLoading}
+            onPageChange={setPage}
+          />
+        </section>
+      ) : (
+        <section className="chat-panel">
+          <Chat />
+        </section>
+      )}
 
       <footer className="app-footer">
         Your tasks are saved in the database.

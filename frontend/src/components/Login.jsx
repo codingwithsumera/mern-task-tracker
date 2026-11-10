@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import Stack from "@mui/material/Stack";
+
 function Login() {
   const { login } = useAuth();
 
@@ -26,31 +31,44 @@ function Login() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <Stack
+      component="form"
+      onSubmit={handleSubmit}
+      spacing={2}
+      sx={{ width: "100%" }}
+    >
       <h2>Login</h2>
 
-      {error && <p role="alert">{error}</p>}
+      {error && <Alert severity="error">{error}</Alert>}
 
-      <input
+      <TextField
+        label="Email"
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        fullWidth
       />
 
-      <input
+      <TextField
+        label="Password"
         type="password"
-        placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        fullWidth
       />
 
-      <button type="submit" disabled={loading}>
+      <Button
+        color="secondary"
+        type="submit"
+        variant="contained"
+        disabled={loading}
+        fullWidth
+      >
         {loading ? "Logging in..." : "Login"}
-      </button>
-    </form>
+      </Button>
+    </Stack>
   );
 }
 

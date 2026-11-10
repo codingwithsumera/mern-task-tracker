@@ -36,9 +36,9 @@
 
 .task-panel {
   padding: 28px;
-  border: 1px solid #e8e7f0;
+  border: 1px solid #370202;
   border-radius: 20px;
-  background: #ffffff;
+  background: rgb(92 236 244 / 25%);
   box-shadow: 0 16px 45px rgb(40 35 80 / 7%);
 }
 
@@ -63,6 +63,7 @@
   color: #25243a;
   font: inherit;
   outline: none;
+  font-weight: 500;
 }
 
 .task-form input:focus {
@@ -106,7 +107,7 @@ button:disabled {
 }
 
 .page-indicator {
-  color: #77758b;
+  color: #050506;
   font-size: 0.85rem;
 }
 
@@ -145,6 +146,7 @@ button:disabled {
   overflow-wrap: anywhere;
   color: #333247;
   line-height: 1.5;
+  font-weight: 700;
 }
 
 .task-item.completed .task-title {
@@ -198,7 +200,7 @@ button:disabled {
   justify-content: space-between;
   gap: 12px;
   margin-top: 24px;
-  color: #77758b;
+  color: #050507;
   font-size: 0.9rem;
 }
 
@@ -381,4 +383,40 @@ button:disabled {
   to {
     opacity: 1;
   }
+}
+.app-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.app-navigation button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.nav-button {
+  background-color: #e8e0ff;
+  color: #5935a8;
+}
+
+.nav-button:hover {
+  background-color: #d8caff;
+}
+
+.logout-button {
+  background-color: #ffe3e8;
+  color: #b42345;
+}
+
+.logout-button:hover {
+  background-color: #ffcbd5;
 }

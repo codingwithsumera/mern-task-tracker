@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+
 function Register() {
   const { register } = useAuth();
 
@@ -33,41 +39,58 @@ function Register() {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create an account</h2>
+    <Stack
+      component="form"
+      onSubmit={handleSubmit}
+      spacing={2}
+      sx={{ width: "100%" }}
+    >
+      <Typography variant="h5">Create an account</Typography>
 
-      {error && <p role="alert">{error}</p>}
-      {success && <p role="status">{success}</p>}
+      {error && <Alert severity="error">{error}</Alert>}
+      {success && <Alert severity="success">{success}</Alert>}
 
-      <input
+      <TextField
+        label="Name"
         type="text"
-        placeholder="Name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
+        fullWidth
       />
 
-      <input
+      <TextField
+        label="Email"
         type="email"
-        placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
+        fullWidth
       />
 
-      <input
+      <TextField
+        label="Password"
         type="password"
-        placeholder="Password (minimum 8 characters)"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        minLength={8}
+        slotProps={{
+          htmlInput: { minLength: 8 },
+        }}
         required
+        fullWidth
+        helperText="Minimum 8 characters"
       />
 
-      <button type="submit" disabled={loading}>
+      <Button
+        color="secondary"
+        type="submit"
+        variant="contained"
+        disabled={loading}
+        fullWidth
+      >
         {loading ? "Creating account..." : "Register"}
-      </button>
-    </form>
+      </Button>
+    </Stack>
   );
 }
 
