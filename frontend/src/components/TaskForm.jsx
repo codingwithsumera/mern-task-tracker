@@ -2,6 +2,7 @@ import { useState } from "react";
 
 function TaskForm({ onAddTask, submitting }) {
   const [title, setTitle] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -12,10 +13,11 @@ function TaskForm({ onAddTask, submitting }) {
       return;
     }
 
-    const success = await onAddTask(trimmedTitle);
+    const success = await onAddTask(trimmedTitle, dueDate || null);
 
     if (success) {
       setTitle("");
+      setDueDate("");
     }
   }
 
@@ -31,6 +33,14 @@ function TaskForm({ onAddTask, submitting }) {
           placeholder="What do you need to do?"
           aria-label="Task title"
           maxLength={200}
+          disabled={submitting}
+        />
+
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(event) => setDueDate(event.target.value)}
+          aria-label="Task due date"
           disabled={submitting}
         />
 
