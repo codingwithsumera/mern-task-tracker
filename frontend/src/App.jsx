@@ -109,10 +109,11 @@ function App() {
     updateMutation.isPending ||
     deleteMutation.isPending;
 
-  async function handleAddTask(title) {
+  async function handleAddTask(title, dueDate) {
     setError("");
+
     try {
-      await createMutation.mutateAsync({ title });
+      await createMutation.mutateAsync({ title, dueDate });
       return true;
     } catch {
       return false;
@@ -244,7 +245,13 @@ function App() {
             submitting={createMutation.isPending}
           />
 
-          <div className="task-heading">
+          <div
+            className="task-heading"
+            style={{
+              paddingBottom: "24px",
+              marginBottom: "12px",
+            }}
+          >
             <h2>Your tasks</h2>
             <span className="page-indicator">
               Page {page} of {totalPages}

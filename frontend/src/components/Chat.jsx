@@ -26,7 +26,11 @@ const Chat = () => {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.reply },
+        {
+          role: "assistant",
+          content: data.reply,
+          toolCalls: data.toolCalls || [],
+        },
       ]);
     } catch (error) {
       setError(error.response?.data?.message || "Failed to send message.");
@@ -42,22 +46,65 @@ const Chat = () => {
       </Typography>
 
       {messages.map((message, index) => (
-        <Typography
-          key={index}
-          sx={{
-            textAlign: message.role === "user" ? "right" : "left",
-            mb: 2,
-            color: message.role === "user" ? "#7047c6" : "#333",
-          }}
-        >
-          <strong>{message.role === "user" ? "You: " : "AI: "}</strong>
-          {message.content}
-        </Typography>
+        <Box key={index} sx={{ mb: 3 }}>
+          <Typography
+            sx={{
+              textAlign: message.role === "user" ? "right" : "left",
+              color: message.role === "user" ? "#7047c6" : "#333",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            <strong>{message.role === "user" ? "You: " : "AI: "}</strong>
+            {message.content}
+          </Typography>
+
+          {message.toolCalls?.length > 0 && (
+            <Box
+              sx={{
+                mt: 1,
+                ml: 2,
+                p: 2,
+                border: "1px solid #ddd",
+                borderRadius: 2,
+                backgroundColor: "#f8f6fc",
+              }}
+            >
+              <Typography fontWeight="bold" mb={1}>
+                Agent Tool Activity
+              </Typography>
+
+              {message.toolCalls.map((tool, toolIndex) => (
+                <Box key={toolIndex} sx={{ mb: 2 }}>
+                  <Typography fontWeight="bold" color="primary">
+                    Tool: {tool.name}
+                  </Typography>
+
+                  <Typography variant="body2" fontWeight="bold" mt={1}>
+                    Arguments:
+                  </Typography>
+
+                  <Box component="pre" sx={{ overflowX: "auto", fontSize: 12 }}>
+                    {JSON.stringify(tool.arguments, null, 2)}
+                  </Box>
+
+                  <Typography variant="body2" fontWeight="bold">
+                    Result:
+                  </Typography>
+
+                  <Box component="pre" sx={{ overflowX: "auto", fontSize: 12 }}>
+                    {JSON.stringify(tool.result, null, 2)}
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
       ))}
 
       {loading && (
         <Typography color="text.secondary">AI is thinking...</Typography>
       )}
+
       {error && <Typography color="error">{error}</Typography>}
 
       <form

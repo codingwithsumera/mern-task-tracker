@@ -1,162 +1,67 @@
-import mongoose from "mongoose";
-import Task from "../models/Task.js";
+import {
+  listTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+} from "../services/taskService.js";
 
-// GET /api/tasks?page=1&limit=5
+// GET /api/tasks
 const getTasks = async (req, res) => {
-  try {
-    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-    const limit = Math.min(
-      100,
-      Math.max(1, parseInt(req.query.limit, 10) || 5),
-    );
+  const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 5));
 
-    const skip = (page - 1) * limit;
-    const owner = req.session.userId;
+  const result = await listTasks(req.session.userId, page, limit);
 
-    const [tasks, totalTasks] = await Promise.all([
-      Task.find({ owner }).sort({ createdAt: -1 }).skip(skip).limit(limit),
-      Task.countDocuments({ owner }),
-    ]);
-
-    return res.status(200).json({
-      tasks,
-      pagination: {
-        currentPage: page,
-        limit,
-        totalTasks,
-        totalPages: Math.ceil(totalTasks / limit),
-      },
-    });
-  } catch (error) {
-    console.error("Get tasks error:", error);
-    return res.status(500).json({
-      message: "Internal server error.",
-    });
+  if (!result.success) {
+    return res.status(500).json({ message: result.reason });
   }
+
+  return res.status(200).json({
+    tasks: result.tasks,
+    pagination: result.pagination,
+  });
 };
 
 // POST /api/tasks
-const createTask = async (req, res) => {
-  try {
-    const { title } = req.body;
+const addTask = async (req, res) => {
+  const { title, dueDate } = req.body;
 
-    if (typeof title !== "string" || !title.trim()) {
-      return res.status(400).json({
-        message: "Task title is required.",
-      });
-    }
+  const result = await createTask(req.session.userId, title, dueDate);
 
-    const task = await Task.create({
-      title: title.trim(),
-      owner: req.session.userId,
-    });
-
-    return res.status(201).json(task);
-  } catch (error) {
-    console.error("Create task error:", error);
-    return res.status(500).json({
-      message: "Internal server error.",
-    });
+  if (!result.success) {
+    return res.status(400).json({ message: result.reason });
   }
+
+  return res.status(201).json(result.task);
 };
 
 // PATCH /api/tasks/:id
-// PATCH /api/tasks/:id
-const updateTask = async (req, res) => {
-  try {
-    const { id } = req.params;
+const editTask = async (req, res) => {
+  const result = await updateTask(req.session.userId, req.params.id, req.body);
 
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        message: "Invalid task ID.",
-      });
-    }
-
-    const { title, completed } = req.body;
-    const updates = {};
-
-    // Validate title if provided
-    if (title !== undefined) {
-      if (typeof title !== "string" || !title.trim()) {
-        return res.status(400).json({
-          message: "Task title cannot be empty.",
-        });
-      }
-
-      updates.title = title.trim();
-    }
-
-    // Validate completed if provided
-    if (completed !== undefined) {
-      if (typeof completed !== "boolean") {
-        return res.status(400).json({
-          message: "Completed must be a boolean.",
-        });
-      }
-
-      updates.completed = completed;
-    }
-
-    // Ensure at least one valid field was provided
-    if (Object.keys(updates).length === 0) {
-      return res.status(400).json({
-        message: "Provide a title or completed status to update.",
-      });
-    }
-
-    const task = await Task.findOneAndUpdate(
-      {
-        _id: id,
-        owner: req.session.userId,
-      },
-      { $set: updates },
-      { new: true, runValidators: true },
-    );
-
-    if (!task) {
-      return res.status(404).json({
-        message: "Task not found.",
-      });
-    }
-
-    return res.status(200).json(task);
-  } catch (error) {
-    console.error("Update task error:", error);
-    return res.status(500).json({
-      message: "Internal server error.",
-    });
+  if (!result.success) {
+    const status = result.reason === "Task not found." ? 404 : 400;
+    return res.status(status).json({ message: result.reason });
   }
+
+  return res.status(200).json(result.task);
 };
 
 // DELETE /api/tasks/:id
-const deleteTask = async (req, res) => {
-  try {
-    const { id } = req.params;
+const removeTask = async (req, res) => {
+  const result = await deleteTask(req.session.userId, req.params.id);
 
-    if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({
-        message: "Invalid task ID.",
-      });
-    }
-
-    const task = await Task.findOneAndDelete({
-      _id: id,
-      owner: req.session.userId,
-    });
-
-    if (!task) {
-      return res.status(404).json({
-        message: "Task not found.",
-      });
-    }
-
-    return res.status(204).send();
-  } catch (error) {
-    console.error("Delete task error:", error);
-    return res.status(500).json({
-      message: "Internal server error.",
-    });
+  if (!result.success) {
+    const status = result.reason === "Task not found." ? 404 : 400;
+    return res.status(status).json({ message: result.reason });
   }
+
+  return res.status(204).send();
 };
 
-export { getTasks, createTask, updateTask, deleteTask };
+export {
+  getTasks,
+  addTask as createTask,
+  editTask as updateTask,
+  removeTask as deleteTask,
+};

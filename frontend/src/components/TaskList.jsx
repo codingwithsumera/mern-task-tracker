@@ -61,6 +61,12 @@ function TaskList({
         return (
           <li
             className={`task-item ${task.completed ? "completed" : ""}`}
+            style={{
+              borderBottom: "1px solid #032a5e",
+              paddingBottom: "12px",
+              marginBottom: "12px",
+            }}
+
             key={task._id}
           >
             <div className="task-details">
@@ -78,7 +84,20 @@ function TaskList({
                   {editError && <p className="error-message">{editError}</p>}
                 </div>
               ) : (
-                <span className="task-title">{task.title}</span>
+                <div>
+                  <span className="task-title">{task.title}</span>
+
+                  {task.dueDate && (
+                    <p className="task-due-date">
+                      Due:{" "}
+                      {new Date(task.dueDate).toLocaleDateString("en-GB", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  )}
+                </div>
               )}
 
               <span
