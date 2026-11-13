@@ -38,6 +38,7 @@ const listTasks = async (owner, page = null, limit = null) => {
 };
 
 // CREATE TASK
+// CREATE TASK
 const createTask = async (owner, title, dueDate = null) => {
   try {
     if (typeof title !== "string" || !title.trim()) {
@@ -47,9 +48,24 @@ const createTask = async (owner, title, dueDate = null) => {
       };
     }
 
+    let validDueDate = null;
+
+    if (dueDate !== null && dueDate !== undefined && dueDate !== "") {
+      const date = new Date(dueDate);
+
+      if (Number.isNaN(date.getTime())) {
+        return {
+          success: false,
+          reason: "Invalid due date.",
+        };
+      }
+
+      validDueDate = date;
+    }
+
     const task = await Task.create({
       title: title.trim(),
-      dueDate,
+      dueDate: validDueDate,
       owner,
     });
 

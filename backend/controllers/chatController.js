@@ -27,9 +27,15 @@ const chat = async (req, res) => {
 
     // Get the agent's final response.
     const lastMessage = result.messages[result.messages.length - 1];
+    const reply = Array.isArray(lastMessage.content)
+      ? lastMessage.content
+          .filter((block) => block.type === "text")
+          .map((block) => block.text)
+          .join("")
+      : lastMessage.content;
 
     return res.status(200).json({
-      reply: lastMessage.content,
+      reply,
       toolCalls,
     });
   } catch (error) {
